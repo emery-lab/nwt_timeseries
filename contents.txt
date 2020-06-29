@@ -1,0 +1,20 @@
+contents.txt
+
+'p(@)' max characters per line = 80
+
+
+This file is just a list of all the parts of the nwt_timeseries repo. If you
+add a new script I think it is helpful to document what it is.
+
+Folders
+-raw_data
+  -18.12.19.sennetdata_raw.Rdata
+  -06.28.10.sennet_plantcommunity_raw.csv
+
+-data
+  -06.28.20.sennetdata_cleanish.Rdata
+
+
+00.clean_raw_sensor_data - This script gets the sensor data (not including winter 2019 and 2020). Will update soon.
+
+01.
