@@ -18,7 +18,7 @@ combos$Psi = NA # raw Psi column
 
 
 ## this loops through combos and generates the Psi value for eacch of the plot combos. This includes the soil moisture and temperature data (see script 00)
-system.time(
+system.time( ## runs for like 11 minutes on my Mac (WR)
 for(i in 1:nrow(combos)){
   print(i)
   tmp1 = sn.01_daily[sn.01_daily$sensornode == combos[i, "Var1"],] 
@@ -44,5 +44,5 @@ for(i in 1:nrow(combos)){
 })
 
 colnames(combos) = c("first.sensor", "second.sensor", "Psi")
-save("")
+write.csv(combos, "data/06.28.20.sennetdissimilarity.csv", row.names = FALSE )
 

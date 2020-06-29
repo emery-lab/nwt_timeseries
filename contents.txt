@@ -13,8 +13,12 @@ Folders
 
 -data
   -06.28.20.sennetdata_cleanish.Rdata
+  -06.28.20.sennetdissimilarity.csv
 
 
-00.clean_raw_sensor_data - This script gets the sensor data (not including winter 2019 and 2020). Will update soon.
+00.clean_raw_sensor_data - This script gets the sensor data (not including 
+winter 2019 and 2020). Will update soon.
 
-01.
+01.get_pairwise_dissimilarity - this script makes the combos of sensors and 
+then gets the Psi (dissimilarity) metric. I want to add physical distance to
+this output data frame. 
