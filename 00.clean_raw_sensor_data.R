@@ -1,26 +1,60 @@
+library(ggplot2)
+
 ## briefly clean sensor node data
 ## load the *mostly* raw data
-load("raw_data/18.12.19.sennetdata_raw.Rdata")
-
-## add date column
-sn.01$date = as.Date(sn.01$TIMESTAMP)
+sn.tmp = read.csv("raw_data/06.07.20.sennetdata_raw.csv")
 
 
-sn.01 = sn.01[, c("TIMESTAMP","sensornode", "soiltemp_5cm_Avg", "soiltemp_30cm_Avg", 
-                  "vwca_5cm_Avg", "vwca_30cm_Avg", "vwcb_5cm_Avg", "vwcb_30cm_Avg", 
-                  "vwcc_5cm_Avg", "vwcc_30cm_Avg", 
-                  "date")]
+sn.tmp
+
+sn.tmp$TIMESTAMP = as.POSIXct(sn.tmp$date, format ="%Y-%m-%d %H:%M:%S")
+#sn.tmp = sn.tmp[order(sn.tmp$sensornode, sn.tmp$TIMESTAMP), ]
+
+
+str(sn.tmp)
+table(sn.tmp$soilmoisture_a_5cm_avg > 0)
+table(sn.tmp$soilmoisture_a_5cm_avg < 1)
 
 ## remove obviously wrong records from the 5cm sensors should be between 0 and 1 (0% and 100%)
-sn.01 = sn.01[sn.01$vwca_5cm_Avg > 0 & sn.01$vwca_5cm_Avg < 1, ]  
-sn.01 = sn.01[sn.01$vwcb_5cm_Avg > 0 & sn.01$vwcb_5cm_Avg < 1, ]
-sn.01 = sn.01[sn.01$vwcc_5cm_Avg > 0 & sn.01$vwcc_5cm_Avg < 1, ]
+sn.tmp = sn.tmp[which(sn.tmp$soilmoisture_a_5cm_avg > 0 & sn.tmp$soilmoisture_a_5cm_avg < 1), ]  
+sn.tmp = sn.tmp[which(sn.tmp$soilmoisture_b_5cm_avg > 0 & sn.tmp$soilmoisture_b_5cm_avg < 1), ]  
+sn.tmp = sn.tmp[which(sn.tmp$soilmoisture_c_5cm_avg > 0 & sn.tmp$soilmoisture_c_5cm_avg < 1), ]  
+
 
 ## "" from the 30 cm sensors
-sn.01 = sn.01[sn.01$vwca_30cm_Avg > 0 & sn.01$vwca_30cm_Avg < 1, ]
-sn.01 = sn.01[sn.01$vwcb_30cm_Avg > 0 & sn.01$vwca_30cm_Avg < 1, ]
-sn.01 = sn.01[sn.01$vwcc_30cm_Avg > 0 & sn.01$vwca_30cm_Avg < 1, ]
+sn.tmp = sn.tmp[which(sn.tmp$soilmoisture_a_30cm_avg > 0 & sn.tmp$soilmoisture_a_30cm_avg < 1), ]  
+sn.tmp = sn.tmp[which(sn.tmp$soilmoisture_b_30cm_avg > 0 & sn.tmp$soilmoisture_b_30cm_avg < 1), ]  
+sn.tmp = sn.tmp[which(sn.tmp$soilmoisture_c_30cm_avg > 0 & sn.tmp$soilmoisture_c_30cm_avg < 1), ]  
 
-save(file = "data/06.28.20.sennetdata_cleanish.Rdata", sn.01)
+
+# initial plotting. 
+# ggplot(sn.tmp) +
+#   geom_point(aes(y = soilmoisture_a_5cm_avg, x = TIMESTAMP)) +
+#   geom_point(aes(y = soilmoisture_b_5cm_avg, x = TIMESTAMP)) +
+#   geom_point(aes(y = soilmoisture_c_5cm_avg, x = TIMESTAMP)) +
+#   facet_wrap(facets = 'sensornode')
+# 
+# ggplot(sn.tmp) +
+#   geom_line(aes(y = soilmoisture_a_5cm_avg, x = TIMESTAMP)) +
+#   geom_line(aes(y = soilmoisture_b_5cm_avg, x = TIMESTAMP)) +
+#   geom_line(aes(y = soilmoisture_c_5cm_avg, x = TIMESTAMP)) +
+#   facet_wrap(facets = 'sensornode')
+
+
+write.csv(sn.tmp, file = "data/07.08.20.sennetdata_cleanish.csv", row.names = FALSE)
+
+## subset dates 
+min(sn.tmp$TIMESTAMP)
+
+sn.2018 = sn.tmp[sn.tmp$TIMESTAMP > as.POSIXct("2018-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
+                 sn.tmp$TIMESTAMP < as.POSIXct("2018-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
+
+sn.2019 = sn.tmp[sn.tmp$TIMESTAMP > as.POSIXct("2019-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
+                 sn.tmp$TIMESTAMP < as.POSIXct("2019-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
+
+sn.grow = rbind(sn.2018, sn.2019)
+write.csv(sn.grow, file = "data/07.19.20.sennetdata_growing_season.csv", row.names = FALSE)
+write.csv(sn.2018, file = "data/07.19.20.sennetdata_2018.csv", row.names = FALSE)
+write.csv(sn.2019, file = "data/07.19.20.sennetdata_2019.csv", row.names = FALSE)
 
 
