@@ -1,6 +1,7 @@
 ## read in the geo data and the pairwise dissimilarity 
+rm(list = ls())
 locs = read.csv("data/06.29.2020.sensorlocations.csv")
-dissim = read.csv("data/06.28.20.sennetdissimilarity.csv")
+dissim = read.csv("data/08.12.20.sennetdissimilarity.csv")
 
 ## plot the sensors
 plot(locs$long, locs$lat, asp = 1, pch = 19, cex = 2)
@@ -18,9 +19,13 @@ distances_m
 
 ## make a data frame
 distances_melted = melt(distances_m)
-colnames(distances_melted) = c("s1", "s2", "real_distance")
-dissim_distance = merge(xx2, distances_melted) ## run to here if you want this data. might be useful. 
+colnames(distances_melted) = c("first.sensor", "second.sensor", "real_distance")
+dissim_distance = merge(dissim, distances_melted) ## run to here if you want this data. might be useful. 
 dissim_distance[order(dissim_distance$type, dissim_distance$s1, dissim_distance$s2),]
+
+plot(dissim_distance$new.psi ~ dissim_distance$real_distance)
+mod = lm(dissim_distance$new.psi ~ dissim_distance$real_distance)
+
 
 write.csv(dissim_distance, "data/07.14.20.sensordissimilarity_wdistance.csv", row.names = F)
 
