@@ -105,6 +105,8 @@ sennet.psi = workflowPsiHP(
                 
 )
 
+write.csv(all.psi, "data/08.12.20.sennetdissimilarity.csv", row.names = FALSE)
+
 # compare to old (wrong) way
 old.psi = read.csv("data/06.28.20.sennetdissimilarity.csv")
 
