@@ -4,6 +4,78 @@ library(ggplot2)
 ## load the *mostly* raw data
 sn.tmp = read.csv("raw_data/06.07.20.sennetdata_raw.csv")
 
+# this function is good for viewing the soil moisture at 5 and 30cm for all three nodes. Good to check if they are potentially switched.
+plot.raw.sm = function(data = sn.01, sensor = 6){
+  sensor.tp = data[data$sensornode %in% sensor, ]
+  sensor.tp$date = as.POSIXct(sensor.tp$date, format = "%Y-%m-%d %H:%M:%S")
+  
+  par(mfrow = c(1, 3))
+  
+  plot(x = sensor.tp$date, 
+       y = sensor.tp$soilmoisture_a_5cm_avg, 
+       type = "p", 
+       col = "light blue",
+       cex = 0.1,
+       pch = 19,
+       ylim = c(0, 1),
+       main = "subnode-A",
+       cex.main = 2)
+  
+  points(x = sensor.tp$date, 
+         y = sensor.tp$soilmoisture_a_30cm_avg, 
+         col = "blue",
+         cex = 0.1,
+         pch = 19)
+  
+  flag.a5 = sensor.tp[sensor.tp$flag_soilmoisture_a_5cm_avg == "s", ]
+  print(head(flag.a5))
+  
+  points(x = flag.a5$date,
+         y = flag.a5$soilmoisture_a_30cm_avg,
+         col = "black",
+         cex = 0.5)
+  
+  
+  plot(x = sensor.tp$date, 
+       y = sensor.tp$soilmoisture_b_5cm_avg, 
+       type = "p", 
+       col = "pink",
+       cex = 0.1,
+       pch = 19,
+       ylim = c(0, 1),
+       main = "subnode-B",
+       cex.main = 2)
+  
+  points(x = sensor.tp$date, 
+         y = sensor.tp$soilmoisture_b_30cm_avg, 
+         col = "red",
+         cex = 0.1,
+         pch = 19)
+  
+  plot(x = sensor.tp$date, 
+       y = sensor.tp$soilmoisture_c_5cm_avg, 
+       type = "p", 
+       col = "light green",
+       cex = 0.1,
+       pch = 19,
+       ylim = c(0, 1),
+       main = "subnode-C",
+       cex.main = 2)
+  
+  points(x = sensor.tp$date, 
+         y = sensor.tp$soilmoisture_c_30cm_avg, 
+         col = "dark green",
+         cex = 0.1,
+         pch = 19)
+  
+  
+}
+
+# check one out. 
+plot.raw.sm(data = sn.tmp, sensor = 8)
+
+
+
 
 sn.tmp
 
