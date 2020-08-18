@@ -69,9 +69,14 @@ plot.raw.sm = function(data = sn.01, sensor = 6){
   
 }
 
-sn.tmp$TIMESTAMP = as.POSIXct(sn.tmp$date, format ="%Y-%m-%d %H:%M:%S")
-sn.tmp$date = as.Date(sn.tmp$date)
-#sn.tmp = sn.tmp[order(sn.tmp$sensornode, sn.tmp$TIMESTAMP), ]
+#### 0. MISC HOUSE KEEPING ####
+sn.tmp$TIMESTAMP = as.POSIXct(sn.tmp$date, format ="%Y-%m-%d %H:%M:%S") # convert timestamp to not dumb character
+sn.tmp$date = as.Date(sn.tmp$date) # convert date to overall date, for aggregating later
+
+## remove sensors 1 and 18
+table(sn.tmp$sensornode)
+sn.tmp = sn.tmp[!sn.tmp$sensornode %in% c(1,18), ]
+table(sn.tmp$sensornode)
 
 #### 1a.SOIL MOISTURE CLEANING METHOD 1 ####
 # str(sn.tmp)
@@ -158,7 +163,7 @@ sn.01n = sn.2
 sn.01r = sn.real 
 sn.01a = sn.art
 
-file.name1 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), "sn.01.Rdata")
+file.name1 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.01.Rdata")
 save(sn.01a, sn.01r, sn.01n, file = file.name1)
 rm(sn.2, sn.real, sn.art, sn.tmp, include, file.name1) # clean up the workspace
 
@@ -218,25 +223,46 @@ rm(file.name2)
 #load("data/08.17.20.sn.01.Rdata")
 #load("data/08.17.20.sn.02.Rdata")
 
-#### 8. MAKE AGGREGATED DATA FRAMES ####
-colnames(sn.02a) # see what the names are, should be the same for all sn.02 dfs 
+#### 8a. MAKE AGGREGATED DATA FRAMES (full season) ####
+colnames(sn.01a) # see what the names are, should be the same for all sn.02 dfs 
 ## do a first (arbitrary)
-sn.03a = aggregate(sn.02a[, -which(names(sn.02a) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.02a$sensornode, sn.02a$date), FUN = mean) ## only do columns where a mean makes sense (i.e not LTER_site)
+sn.03a = aggregate(sn.01a[, -which(names(sn.01a) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.01a$sensornode, sn.01a$date), FUN = mean) ## only do columns where a mean makes sense (i.e not LTER_site)
 sn.03a = sn.03a[, -which(names(sn.03a) %in% c("Group.1", "Group.2"))] # get rid of the stupid aggregate columns. thisis a dumb feature of this function, maybe I'm doing it wrong?
 
 ## do r next (real)
 ## see above comments for workins
-sn.03r = aggregate(sn.02r[, -which(names(sn.02r) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.02r$sensornode, sn.02r$date), FUN = mean)
+sn.03r = aggregate(sn.01r[, -which(names(sn.01r) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.01r$sensornode, sn.01r$date), FUN = mean)
 sn.03r = sn.03r[, -which(names(sn.03r) %in% c("Group.1", "Group.2"))]
 
 ## do n next (input NA's)
 ## see above comments for workins
-sn.03n = aggregate(sn.02n[, -which(names(sn.02n) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.02n$sensornode, sn.02n$date), FUN = mean)
+sn.03n = aggregate(sn.01n[, -which(names(sn.01n) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.01n$sensornode, sn.01n$date), FUN = mean)
 sn.03n = sn.03n[, -which(names(sn.03n) %in% c("Group.1", "Group.2"))]
 
 file.name3 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.03.Rdata")
-save(sn.03a, sn.03r, sn.03n, file = file.name2)
+save(sn.03a, sn.03r, sn.03n, file = file.name3)
 rm(file.name3)
+
+
+#### 8b. MAKE AGGREGATED DATA FRAMES (growing season) ####
+colnames(sn.02a) # see what the names are, should be the same for all sn.02 dfs 
+## do a first (arbitrary)
+sn.04a = aggregate(sn.02a[, -which(names(sn.02a) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.02a$sensornode, sn.02a$date), FUN = mean) ## only do columns where a mean makes sense (i.e not LTER_site)
+sn.04a = sn.04a[, -which(names(sn.04a) %in% c("Group.1", "Group.2"))] # get rid of the stupid aggregate columns. thisis a dumb feature of this function, maybe I'm doing it wrong?
+
+## do r next (real)
+## see above comments for workins
+sn.04r = aggregate(sn.02r[, -which(names(sn.02r) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.02r$sensornode, sn.02r$date), FUN = mean)
+sn.04r = sn.04r[, -which(names(sn.04r) %in% c("Group.1", "Group.2"))]
+
+## do n next (input NA's)
+## see above comments for workins
+sn.04n = aggregate(sn.02n[, -which(names(sn.02n) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.02n$sensornode, sn.02n$date), FUN = mean)
+sn.04n = sn.04n[, -which(names(sn.04n) %in% c("Group.1", "Group.2"))]
+
+file.name4 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.04.Rdata")
+save(sn.04a, sn.04r, sn.04n, file = file.name4)
+rm(file.name4)
 
 #### 9. ACTUALLY CLEAR ENVIRONMENT ####
 rm(list = ls())
