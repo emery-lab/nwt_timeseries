@@ -9,7 +9,8 @@ library(sf)
 library(ecodist)
 
 # plot time-series psi metric
-psi <- read.csv("06.28.20.sennetdissimilarity.csv")
+psi <- read.csv("data/08.12.20.sennetdissimilarity.csv")
+head(psi)
 colnames(psi) <- c("s1", "s2", "psi")
 length(unique(psi$s1)) # 16
 length(unique(psi$s2)) # 16
