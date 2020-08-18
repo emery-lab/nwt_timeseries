@@ -75,7 +75,7 @@ sn.tmp$date = as.Date(sn.tmp$date) # convert date to overall date, for aggregati
 
 ## remove sensors 1 and 18
 table(sn.tmp$sensornode)
-sn.tmp = sn.tmp[!sn.tmp$sensornode %in% c(1,18), ]
+sn.tmp = sn.tmp[!sn.tmp$sensornode %in% c(1,15,18), ]
 table(sn.tmp$sensornode)
 
 #### 1a.SOIL MOISTURE CLEANING METHOD 1 ####
