@@ -66,6 +66,10 @@ psi.030430cmr = merge.psi(psi.0304r, psi.04r.30cm)
 colnames(psi.030430cmr) = c(names(psi.0304r), "psi.30cm")
 rm(psi.04r.30cm, psi.0304r)
 
+
+#### 6. MAKE A PLOT TO SEE ####
+png("figures/compare_growing_30cm.png", height = 5, width = 6, res = 300, units = "in")
+par(mar = c(4, 4.5, 2, 2)) # change margins to be prettier
 ## ur basic plotting 
 plot(x = psi.030430cmr$psi.growing, 
      y = psi.030430cmr$psi.30cm,
@@ -81,4 +85,10 @@ plot(x = psi.030430cmr$psi.growing,
 mod030430cm = lm(psi.30cm ~ psi.growing, data = psi.030430cmr)
 summary(mod030430cm)
 
-
+## add line
+abline(mod030430cm, lty = 2, lwd = 2)
+## add R2
+text(x = 6, y = 1, expression("R"^2))
+text(x = 7.2, y = 0.95, "= 0.7094")
+rm(mod030430cm)
+dev.off()
