@@ -1,5 +1,4 @@
 # NWT SNA Time Series Analysis
-
 library(vegan)
 library(picante)
 library(tidyverse)
@@ -7,6 +6,7 @@ library(lubridate)
 library(cowplot)
 library(sf)
 library(ecodist)
+library(reshape2)
 
 # read in time-series psi metric
 psi.df <- read.csv("data/08.12.20.sennetdissimilarity.csv")
@@ -82,6 +82,10 @@ veg.dissimilarity <- vegdist(x = veg.matrix, method = "bray", upper = T, diag = 
 veg.dissimilarity.matrix <- as.matrix(veg.dissimilarity)
 dim(veg.dissimilarity.matrix)
 veg.dissimilarity.matrix
+
+## adding this to get a data frame (long)
+veg.dissimilarity.df = melt(veg.dissimilarity.matrix)
+save(veg.dissimilarity.df, file = "data/veg.dissimilarity.df.Rdata")
 
 # 2 matrices
 psi.matrix; dim(psi.matrix)
