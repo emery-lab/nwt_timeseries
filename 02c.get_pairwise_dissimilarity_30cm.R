@@ -92,3 +92,9 @@ text(x = 6, y = 1, expression("R"^2))
 text(x = 7.2, y = 0.95, "= 0.7094")
 rm(mod030430cm)
 dev.off()
+
+#### 7. SAVE 'all.psi' OBJECT AS .RDATA ####
+all.psi = psi.030430cmr
+file.name = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".all.psi.Rdata")
+save(all.psi, file = file.name)
+rm(all.psi, psi.030430cmr, file.name)
