@@ -1,5 +1,6 @@
 # NWT SNA Time Series Analysis
 
+#packages
 library(vegan)
 library(picante)
 library(tidyverse)
@@ -52,7 +53,8 @@ row.names(psi.matrix) <- colnames(psi.matrix)
 veg <- read.csv("raw_data/06.28.20_sennet_plantcommunity_raw.csv") 
 head(veg)
 unique(veg$sensor_node) 
-length(unique(veg$sensor_node)) # 17 nodes here -- > need to pair down to 14 from which psi is calculated
+length(unique(veg$sensor_node))# 17 nodes here -- > need to pair down to 14 from which psi is calculated
+unique(veg$sensor_node)
 unique(veg$date) # multiple years of data
 
 # subset
