@@ -1,6 +1,6 @@
-## 02a.get_pairwise_dissimilarity_growing.R
-## This script will make pairwise Psi values for the growing season (APRIL 1st to OCTOBER 1st)
-## for this script it just uses sn.04r because that seems to be the best
+## 02a.get_pairwise_dissimilarity
+## This script will make pairwise Psi values for the full duration that the sensor network has been running.
+## for this script it just uses sn.03r because that seems to be the best
 ## see 01.compare_cleaning_methods
 
 #### 0. GET IT READY #### 
@@ -15,63 +15,62 @@ load(paste0("data/", file.to.load))
 rm(sn.04a, sn.04n)
 rm(file.to.load)
 
+## get rid of 5cm columns
+sn.04r.30cm = sn.04r[, -grep("5cm", names(sn.04r))]
+rm(sn.04r)
 ## get rid of season column
-sn.04r = sn.04r[, -which(names(sn.04r) %in% c("season"))]
+sn.04r.30cm = sn.04r.30cm[, -which(names(sn.04r.30cm) %in% c("season"))]
 
 #### 1. ADD SAMPLE/TIME COLUMN ####
 ## add a 'time' column, because distantia can't handle dates. Dumb.
-dates = seq(min(sn.04r$date), max(sn.04r$date), by = 1) # range of dates
+dates = seq(min(sn.04r.30cm$date), max(sn.04r.30cm$date), by = 1) # range of dates
 sample = 1:548 # there are 882 'replace' dates with this
 dates = as.data.frame(dates) # turn into data frame or R will lose its mind (turns dates into nonsense integers)
 time.df = cbind(dates, sample) # full df with actual date and useable sample column
 rm(dates, sample) 
 
 ## merge time.df with the main df. I might save this as the base data frame in the future. 
-sn.04r = merge(sn.04r, time.df, by.x = "date", by.y = "dates", all.x = TRUE)
+sn.04r.30cm = merge(sn.04r.30cm, time.df, by.x = "date", by.y = "dates", all.x = TRUE)
 ## Check to make sure there is actually samples in each one. (and 15 or less)
 #table(sn.01_daily.2$sample)
 rm(time.df)
 
 ## remove date column
-sn.04r = sn.04r[, -which(names(sn.04r) %in% c("date"))]
+sn.04r.30cm = sn.04r.30cm[, -which(names(sn.04r.30cm) %in% c("date"))]
 
 #### 2. PREPARE SEQUENCES ####
-seq.04r = prepareSequences(
-  sequences = sn.04r,
+seq.04r.30cm = prepareSequences(
+  sequences = sn.04r.30cm,
   grouping.column = "sensornode",
   time.column = "sample",
   if.empty.cases = "omit"
 )
 
 #### 3. CALCULATE PSI ####
-psi.04r = workflowPsiHP(
-  sequences =  seq.04r,
+psi.04r.30cm = workflowPsiHP(
+  sequences =  seq.04r.30cm,
   grouping.column = "sensornode",
   time.column = "sample",
   parallel.execution = TRUE
   
 )
 
-rm(seq.04r, sn.04r)
+rm(seq.04r.30cm, sn.04r.30cm)
 
-#### 4. ADD TO PSI DATAFRAME ####
+#### 5. ADD TO PSI DATAFRAME ####
 source("functions.R")
 source("02a.get_pairwise_dissimilarity_all.R")
+source("02b.get_pairwise_dissimilarity_growing.R")
 
-psi.0304r = merge.psi(psi.03r, psi.04r)
-colnames(psi.0304r) = c("A", "B", "psi.all", "psi.growing")
-rm(psi.03r, psi.04r)
-
-#### 5. FIGURE AND STATISTICS COMPARING - ALL vs. GROWING ####
-## write png 
-png("figures/compare_all_growing.png", height = 5, width = 6, res = 300, units = "in")
-par(mar = c(4, 4.5, 2, 2)) # change margins to be prettier
+psi.030430cmr = merge.psi(psi.0304r, psi.04r.30cm)
+colnames(psi.030430cmr) = c(names(psi.0304r), "psi.30cm")
+rm(psi.04r.30cm, psi.0304r)
 
 ## ur basic plotting 
-plot(x = psi.0304r$psi.all, 
-     y = psi.0304r$psi.growing,
-     xlab = expression(psi[" all"]),
-     ylab = expression(paste(psi[" growing season"])),
+plot(x = psi.030430cmr$psi.growing, 
+     y = psi.030430cmr$psi.30cm,
+     xlab = expression(psi[" growing"]),
+     ylab = expression(paste(psi[" 30cm"])),
      asp = 1,
      pch = 21,
      col = "gray",
@@ -79,13 +78,7 @@ plot(x = psi.0304r$psi.all,
      bty = "l",
      cex.lab = 1.4)
 
-## to get adjusted R2
-mod0304 = lm(psi.growing ~ psi.all, data = psi.0304r)
-summary(mod0304)
-## add line
-abline(mod0304, lty = 2, lwd = 2)
-## add R2
-text(x = 6, y = 1, expression("R"^2))
-text(x = 6.7, y = 0.95, "= 0.5244")
-rm(mod0304)
-dev.off()
+mod030430cm = lm(psi.30cm ~ psi.growing, data = psi.030430cmr)
+summary(mod030430cm)
+
+
