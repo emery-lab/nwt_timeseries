@@ -114,7 +114,7 @@ merge.psi = function(df1, df2, col1 = "A", col2 = "B"){
 scale.df = function(df){
   for (i in 1:ncol(df)){
     if(is.numeric(df[, i])){
-      df[,i] = scale(df[, i])
+      df[,i] = as.numeric(scale(df[, i]))
     }
     
   }
