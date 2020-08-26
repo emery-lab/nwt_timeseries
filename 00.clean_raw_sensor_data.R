@@ -1,17 +1,21 @@
 ## briefly clean sensor node data
 ## load the *mostly* raw data
+## after talking to Meagan, We've decided to move to only the real method of cleaning, where we remove
+## data above and below 0.6 and -0.03 respectivley 
+source("functions.R")
 sn.tmp = read.csv("raw_data/06.07.20.sennetdata_raw.csv")
 
 #### 0. MISC HOUSE KEEPING ####
 sn.tmp$TIMESTAMP = as.POSIXct(sn.tmp$date, format ="%Y-%m-%d %H:%M:%S") # convert timestamp to not dumb character
 sn.tmp$date = as.Date(sn.tmp$date) # convert date to overall date, for aggregating later
 
+
 ## remove sensors 1 and 18
 table(sn.tmp$sensornode)
 sn.tmp = sn.tmp[!sn.tmp$sensornode %in% c(1,15,18), ]
 table(sn.tmp$sensornode)
 
-#### 1a.SOIL MOISTURE CLEANING METHOD 1 ####
+#### 1. SOIL MOISTURE CLEANING ####
 # str(sn.tmp)
 # table(sn.tmp$soilmoisture_a_5cm_avg > 0, sn.tmp$sensornode)
 # table(sn.tmp$soilmoisture_a_5cm_avg < 1, sn.tmp$sensornode)
@@ -25,31 +29,6 @@ table(sn.tmp$sensornode)
 
 
 ## the QA/QC (flag) column for each record indicates that the sensor detection is between -0.03 and 0.60
-## but I want to check the difference between 1 and 0 and the QA/QC values. 
-
-## between 0 and 1
-## remove obviously wrong records from the 5cm sensors should be between 0 and 1 (0% and 100%)
-sn.art = sn.tmp[which(sn.tmp$soilmoisture_a_5cm_avg > 0 & sn.tmp$soilmoisture_a_5cm_avg < 1), ]  
-sn.art = sn.art[which(sn.art$soilmoisture_b_5cm_avg > 0 & sn.art$soilmoisture_b_5cm_avg < 1), ]  
-sn.art = sn.art[which(sn.art$soilmoisture_c_5cm_avg > 0 & sn.art$soilmoisture_c_5cm_avg < 1), ]  
-
-## "" from the 30 cm sensors
-sn.art = sn.art[which(sn.art$soilmoisture_a_30cm_avg > 0 & sn.art$soilmoisture_a_30cm_avg < 1), ]  
-sn.art = sn.art[which(sn.art$soilmoisture_b_30cm_avg > 0 & sn.art$soilmoisture_b_30cm_avg < 1), ]  
-sn.art = sn.art[which(sn.art$soilmoisture_c_30cm_avg > 0 & sn.art$soilmoisture_c_30cm_avg < 1), ]  
-
-## should we remove all records that if one of the three sensors (A, B, C are above/below the thresholds??) ##
-sn.real = sn.tmp[which(sn.tmp$soilmoisture_a_5cm_avg > -0.03 & sn.tmp$soilmoisture_a_5cm_avg < 0.6), ]  
-sn.real = sn.real[which(sn.real$soilmoisture_b_5cm_avg > -0.03 & sn.real$soilmoisture_b_5cm_avg < 0.6), ]  
-sn.real = sn.real[which(sn.real$soilmoisture_c_5cm_avg > -0.03 & sn.real$soilmoisture_c_5cm_avg < 0.6), ]  
-
-## "" from the 30 cm sensors
-sn.real = sn.real[which(sn.real$soilmoisture_a_30cm_avg > -0.03 & sn.real$soilmoisture_a_30cm_avg < 0.6), ]  
-sn.real = sn.real[which(sn.real$soilmoisture_b_30cm_avg > -0.03 & sn.real$soilmoisture_b_30cm_avg < 0.6), ]  
-sn.real = sn.real[which(sn.real$soilmoisture_c_30cm_avg > -0.03 & sn.real$soilmoisture_c_30cm_avg < 0.6), ] 
-
-
-#### 1b. SOIL MOISTURE CLEANING METHOD 2 ####
 sn.2 = sn.tmp 
 ## 5cm
 sn.2$soilmoisture_a_5cm_avg = ifelse(sn.2$soilmoisture_a_5cm_avg > -0.03 & sn.2$soilmoisture_a_5cm_avg < 0.6, sn.2$soilmoisture_a_5cm_avg, NA)              
@@ -66,20 +45,13 @@ sn.2$soilmoisture_c_30cm_avg = ifelse(sn.2$soilmoisture_c_30cm_avg > -0.03 & sn.
 #plot.raw.sm(sn.art, 9)
 
 
-#### 2a. SOIL TEMP CLEANING METHOD 1 #### 
-sn.real = sn.real[which(sn.real$soiltemp_5cm_avg > -35 & sn.real$soiltemp_5cm_avg < 50), ]
-sn.real = sn.real[which(sn.real$soiltemp_30cm_avg > -35 & sn.real$soiltemp_30cm_avg < 50), ]
-
-sn.art = sn.art[which(sn.art$soiltemp_5cm_avg > -35 & sn.art$soiltemp_5cm_avg < 50), ]
-sn.art = sn.art[which(sn.art$soiltemp_30cm_avg > -35 & sn.art$soiltemp_30cm_avg < 50), ]
-
-#### 2b. SOIL TEMP CLEANING METHOD 2 ####
+#### 2. SOIL TEMP CLEANING  ####
 sn.2$soiltemp_5cm_avg = ifelse(sn.2$soiltemp_5cm_avg > -35 & sn.2$soiltemp_5cm_avg < 50, sn.2$soiltemp_5cm_avg, NA)
 sn.2$soiltemp_30cm_avg = ifelse(sn.2$soiltemp_30cm_avg > -35 & sn.2$soiltemp_30cm_avg < 50, sn.2$soiltemp_30cm_avg, NA)
 
 
 #### 3. REMOVE FLAG COLUMNS ####
-dput(names(sn.2))
+# dput(names(sn.2))
 include = c("LTER_site", "local_site", "sensornode", "date","soiltemp_5cm_avg", 
             "soiltemp_30cm_avg", "soilmoisture_a_5cm_avg", "soilmoisture_a_30cm_avg", 
             "soilmoisture_b_5cm_avg", "soilmoisture_b_30cm_avg", "soilmoisture_c_5cm_avg", 
@@ -87,117 +59,123 @@ include = c("LTER_site", "local_site", "sensornode", "date","soiltemp_5cm_avg",
 
 ## remove columns we don't want
 sn.2 = sn.2[, include]
-sn.real = sn.real[, include]
-sn.art = sn.art[, include]
 
-#### 4. RENAME AND SAVE .RDATA file ####
-## This is better than CSVs because CSVs are effin huge. 
-sn.01n = sn.2
-sn.01r = sn.real 
-sn.01a = sn.art
-
-file.name1 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.01.Rdata")
-save(sn.01a, sn.01r, sn.01n, file = file.name1)
-rm(sn.2, sn.real, sn.art, sn.tmp, include, file.name1) # clean up the workspace
-
+#### 4. RENAME ####
+sn.01 = sn.2
+rm(sn.2, sn.tmp, include)
 
 #### 5. SUBSET TO GROWING SEASON ####
 ## Do artificial clean first (sn.01a)
-sn.2018 = sn.01a[sn.01a$TIMESTAMP > as.POSIXct("2018-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
-                 sn.01a$TIMESTAMP < as.POSIXct("2018-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
+sn.2018 = sn.01[sn.01$TIMESTAMP > as.POSIXct("2018-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
+                 sn.01$TIMESTAMP < as.POSIXct("2018-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
 sn.2018$season = 2018
 
 
-sn.2019 = sn.01a[sn.01a$TIMESTAMP > as.POSIXct("2019-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
-                 sn.01a$TIMESTAMP < as.POSIXct("2019-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
+sn.2019 = sn.01[sn.01$TIMESTAMP > as.POSIXct("2019-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
+                 sn.01$TIMESTAMP < as.POSIXct("2019-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
 sn.2019$season = 2019
 
-sn.02a = rbind(sn.2018, sn.2019)
+sn.02 = rbind(sn.2018, sn.2019)
 rm(sn.2018, sn.2019)
 
-## Do real next (sn.01r)
-sn.2018 = sn.01r[sn.01r$TIMESTAMP > as.POSIXct("2018-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
-                   sn.01r$TIMESTAMP < as.POSIXct("2018-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
+#### 6. SUBSET TO WINTER ####
+## Just using inverse dates of growing season
+
+sn.2018 = sn.01[sn.01$TIMESTAMP < as.POSIXct("2018-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
+                  sn.01$TIMESTAMP > as.POSIXct("2017-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
 sn.2018$season = 2018
 
 
-sn.2019 = sn.01r[sn.01r$TIMESTAMP > as.POSIXct("2019-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
-                   sn.01r$TIMESTAMP < as.POSIXct("2019-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
+sn.2019 = sn.01[sn.01$TIMESTAMP < as.POSIXct("2019-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
+                  sn.01$TIMESTAMP > as.POSIXct("2018-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
 sn.2019$season = 2019
 
-sn.02r = rbind(sn.2018, sn.2019)
+sn.03 = rbind(sn.2018, sn.2019)
 rm(sn.2018, sn.2019)
-
-## lastly do the NA method (sn.01n)
-sn.2018 = sn.01n[sn.01n$TIMESTAMP > as.POSIXct("2018-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
-                   sn.01n$TIMESTAMP < as.POSIXct("2018-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
-sn.2018$season = 2018
-
-
-sn.2019 = sn.01n[sn.01n$TIMESTAMP > as.POSIXct("2019-04-01 00:00:00", format = "%Y-%m-%d %H:%M:%S") &
-                   sn.01n$TIMESTAMP < as.POSIXct("2019-10-01 00:00:00", format = "%Y-%m-%d %H:%M:%S"), ]
-sn.2019$season = 2019
-
-sn.02n = rbind(sn.2018, sn.2019)
-rm(sn.2018, sn.2019)
-
-## Save these as .Rdata
-file.name2 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.02.Rdata")
-save(sn.02a, sn.02r, sn.02n, file = file.name2)
-rm(file.name2)
-
-#### 6. Clear environment ####
-## uncomment if  you want to check these objects
-## otherwise skip to #8 to aggregate and get daily
-## data frames
-#rm(list = ls())
-
-#### 7. Load objects to see ####
-#load("data/08.17.20.sn.01.Rdata")
-#load("data/08.17.20.sn.02.Rdata")
 
 #### 8a. MAKE AGGREGATED DATA FRAMES (full season) ####
-colnames(sn.01a) # see what the names are, should be the same for all sn.02 dfs 
-## do a first (arbitrary)
-sn.03a = aggregate(sn.01a[, -which(names(sn.01a) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.01a$sensornode, sn.01a$date), FUN = mean) ## only do columns where a mean makes sense (i.e not LTER_site)
-sn.03a = sn.03a[, -which(names(sn.03a) %in% c("Group.1", "Group.2"))] # get rid of the stupid aggregate columns. thisis a dumb feature of this function, maybe I'm doing it wrong?
-
-## do r next (real)
-## see above comments for workins
-sn.03r = aggregate(sn.01r[, -which(names(sn.01r) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.01r$sensornode, sn.01r$date), FUN = mean)
-sn.03r = sn.03r[, -which(names(sn.03r) %in% c("Group.1", "Group.2"))]
-
-## do n next (input NA's)
-## see above comments for workins
-sn.03n = aggregate(sn.01n[, -which(names(sn.01n) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.01n$sensornode, sn.01n$date), FUN = mean)
-sn.03n = sn.03n[, -which(names(sn.03n) %in% c("Group.1", "Group.2"))]
-
-file.name3 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.03.Rdata")
-save(sn.03a, sn.03r, sn.03n, file = file.name3)
-rm(file.name3)
+colnames(sn.01) # see what the names are, should be the same for all sn.02 dfs 
+sn.04 = aggregate(sn.01[, -which(names(sn.01) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.01$sensornode, sn.01$date), FUN = mean)
+sn.04 = sn.04[, -which(names(sn.04) %in% c("Group.1", "Group.2"))]
 
 
 #### 8b. MAKE AGGREGATED DATA FRAMES (growing season) ####
-colnames(sn.02a) # see what the names are, should be the same for all sn.02 dfs 
-## do a first (arbitrary)
-sn.04a = aggregate(sn.02a[, -which(names(sn.02a) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.02a$sensornode, sn.02a$date), FUN = mean) ## only do columns where a mean makes sense (i.e not LTER_site)
-sn.04a = sn.04a[, -which(names(sn.04a) %in% c("Group.1", "Group.2"))] # get rid of the stupid aggregate columns. thisis a dumb feature of this function, maybe I'm doing it wrong?
+colnames(sn.02) # see what the names are, should be the same for all sn.02 dfs 
+sn.05 = aggregate(sn.02[, -which(names(sn.02) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.02$sensornode, sn.02$date), FUN = mean)
+sn.05 = sn.05[, -which(names(sn.05) %in% c("Group.1", "Group.2"))]
 
-## do r next (real)
-## see above comments for workins
-sn.04r = aggregate(sn.02r[, -which(names(sn.02r) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.02r$sensornode, sn.02r$date), FUN = mean)
-sn.04r = sn.04r[, -which(names(sn.04r) %in% c("Group.1", "Group.2"))]
+#### 8c. MAKE AGGREGATED DATA FRAMES (Winter) ####
+colnames(sn.03) # see what the names are, should be the same for all sn.02 dfs 
+sn.06 = aggregate(sn.03[, -which(names(sn.03) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.03$sensornode, sn.03$date), FUN = mean)
+sn.06 = sn.06[, -which(names(sn.06) %in% c("Group.1", "Group.2"))]
 
-## do n next (input NA's)
-## see above comments for workins
-sn.04n = aggregate(sn.02n[, -which(names(sn.02n) %in% c("LTER_site", "local_site", "TIMESTAMP"))], list(sn.02n$sensornode, sn.02n$date), FUN = mean)
-sn.04n = sn.04n[, -which(names(sn.04n) %in% c("Group.1", "Group.2"))]
 
+#### 10. SCALE AND SAVE ####
+## sn.01 - Scale it to mean 0; sd 1
+## set up factors 
+sn.01$sensornode = as.factor(sn.01$sensornode)
+
+sn.01 = scale.df(sn.01)
+file.name1 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.01.Rdata")
+old.file1 = list.files("data/")[grep("sn.01", list.files("data/"))]
+file.remove(paste0("data/", old.file1))
+save(sn.01, file = file.name1)
+rm(file.name1, old.file1) # clean up the workspace
+
+## sn.02 - Scale it to mean 0; sd 1
+sn.02$sensornode = as.factor(sn.02$sensornode)
+
+sn.02 = scale.df(sn.02)
+## Save these as .Rdata
+file.name2 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.02.Rdata")
+old.file2 = list.files("data/")[grep("sn.02", list.files("data/"))]
+file.remove(paste0("data/",old.file2))
+save(sn.02, file = file.name2)
+rm(file.name2, old.file2)
+
+## sn.03 -  Scale it to mean 0; sd 1
+sn.03$sensornode = as.factor(sn.03$sensornode)
+
+sn.03 = scale.df(sn.03)
+file.name3 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.03.Rdata")
+old.file3 = list.files("data/")[grep("sn.03", list.files("data/"))]
+file.remove(paste0("data/",old.file3))
+save(sn.03, file = file.name3)
+rm(file.name3, old.file3)
+
+## sn.04 - Scale it to mean 0; sd 1
+sn.04$sensornode = as.factor(sn.04$sensornode)
+
+sn.04 = scale.df(sn.04)
 file.name4 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.04.Rdata")
-save(sn.04a, sn.04r, sn.04n, file = file.name4)
-rm(file.name4)
+old.file4 = list.files("data/")[grep("sn.04", list.files("data/"))]
+file.remove(paste0("data/",old.file4))
+save(sn.04, file = file.name4)
+rm(file.name4, old.file4)
 
-#### 9. ACTUALLY CLEAR ENVIRONMENT ####
+## sn.05 Scale it to mean 0; sd 1
+sn.05$sensornode = as.factor(sn.05$sensornode)
+sn.05$season = as.factor(sn.05$season)
+
+sn.05 = scale.df(sn.05)
+file.name5 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.05.Rdata")
+old.file5 = list.files("data/")[grep("sn.05", list.files("data/"))]
+file.remove(paste0("data/",old.file5))
+save(sn.05, file = file.name5)
+rm(file.name5, old.file5)
+
+## sn.06 - Scale it to mean 0; sd 1
+sn.06$sensornode = as.factor(sn.06$sensornode)
+sn.06$season = as.factor(sn.06$season)
+
+sn.06 = scale.df(sn.06)
+file.name6 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.06.Rdata")
+old.file6 = list.files("data/")[grep("sn.06", list.files("data/"))]
+file.remove(paste0("data/",old.file6))
+save(sn.06, file = file.name6)
+rm(file.name6, old.file6)
+
+#### 11. ACTUALLY CLEAR ENVIRONMENT ####
 rm(list = ls())
 
 

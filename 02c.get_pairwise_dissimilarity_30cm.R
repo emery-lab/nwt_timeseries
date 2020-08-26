@@ -1,7 +1,5 @@
 ## 02a.get_pairwise_dissimilarity
-## This script will make pairwise Psi values for the full duration that the sensor network has been running.
-## for this script it just uses sn.03r because that seems to be the best
-## see 01.compare_cleaning_methods
+## This script will make pairwise Psi values WINTER (Inverse dates of growing season)
 
 #### 0. GET IT READY #### 
 ## Load package 'distantia' 
@@ -10,71 +8,67 @@ library(distantia)
 ## with the file.to.load object it shouldn't matter what the date is.
 ## remove old ones later? 
 ## load file (.Rdata, three objects)
-file.to.load = list.files("data/")[grep("sn.04", list.files("data/"))]
+file.to.load = list.files("data/")[grep("sn.06", list.files("data/"))]
 load(paste0("data/", file.to.load))
-rm(sn.04a, sn.04n)
 rm(file.to.load)
 
-## get rid of 5cm columns
-sn.04r.30cm = sn.04r[, -grep("5cm", names(sn.04r))]
-rm(sn.04r)
 ## get rid of season column
-sn.04r.30cm = sn.04r.30cm[, -which(names(sn.04r.30cm) %in% c("season"))]
+sn.06 = sn.06[, -which(names(sn.06) %in% c("season"))]
 
 #### 1. ADD SAMPLE/TIME COLUMN ####
 ## add a 'time' column, because distantia can't handle dates. Dumb.
-dates = seq(min(sn.04r.30cm$date), max(sn.04r.30cm$date), by = 1) # range of dates
-sample = 1:548 # there are 882 'replace' dates with this
+dates = seq(min(sn.06$date), max(sn.06$date), by = 1) # range of dates
+sample = 1:547 
 dates = as.data.frame(dates) # turn into data frame or R will lose its mind (turns dates into nonsense integers)
 time.df = cbind(dates, sample) # full df with actual date and useable sample column
 rm(dates, sample) 
 
 ## merge time.df with the main df. I might save this as the base data frame in the future. 
-sn.04r.30cm = merge(sn.04r.30cm, time.df, by.x = "date", by.y = "dates", all.x = TRUE)
+sn.06 = merge(sn.06, time.df, by.x = "date", by.y = "dates", all.x = TRUE)
 ## Check to make sure there is actually samples in each one. (and 15 or less)
 #table(sn.01_daily.2$sample)
 rm(time.df)
 
 ## remove date column
-sn.04r.30cm = sn.04r.30cm[, -which(names(sn.04r.30cm) %in% c("date"))]
+sn.06 = sn.06[, -which(names(sn.06) %in% c("date"))]
 
 #### 2. PREPARE SEQUENCES ####
-seq.04r.30cm = prepareSequences(
-  sequences = sn.04r.30cm,
+seq.06 = prepareSequences(
+  sequences = sn.06,
   grouping.column = "sensornode",
   time.column = "sample",
   if.empty.cases = "omit"
 )
 
 #### 3. CALCULATE PSI ####
-psi.04r.30cm = workflowPsiHP(
-  sequences =  seq.04r.30cm,
+psi.06 = workflowPsiHP(
+  sequences =  seq.06,
   grouping.column = "sensornode",
   time.column = "sample",
   parallel.execution = TRUE
   
 )
 
-rm(seq.04r.30cm, sn.04r.30cm)
+rm(seq.06, sn.06)
 
 #### 5. ADD TO PSI DATAFRAME ####
 source("functions.R")
 source("02a.get_pairwise_dissimilarity_all.R")
 source("02b.get_pairwise_dissimilarity_growing.R")
 
-psi.030430cmr = merge.psi(psi.0304r, psi.04r.30cm)
-colnames(psi.030430cmr) = c(names(psi.0304r), "psi.30cm")
-rm(psi.04r.30cm, psi.0304r)
+all.psi = merge.psi(all.psi, psi.06)
+colnames(all.psi) = c("A", "B", "psi.all", "psi.growing", "psi.winter")
+rm(psi.06)
 
 
 #### 6. MAKE A PLOT TO SEE ####
-png("figures/compare_growing_30cm.png", height = 5, width = 6, res = 300, units = "in")
+png("figures/compare_all_winter.png", height = 5, width = 6, res = 300, units = "in")
 par(mar = c(4, 4.5, 2, 2)) # change margins to be prettier
 ## ur basic plotting 
-plot(x = psi.030430cmr$psi.growing, 
-     y = psi.030430cmr$psi.30cm,
-     xlab = expression(psi[" growing"]),
-     ylab = expression(paste(psi[" 30cm"])),
+plot(x = all.psi$psi.all, 
+     y = all.psi$psi.winter,
+     xlab = expression(psi[" all"]),
+     ylab = expression(paste(psi[" winter"])),
      asp = 1,
      pch = 21,
      col = "gray",
@@ -82,19 +76,20 @@ plot(x = psi.030430cmr$psi.growing,
      bty = "l",
      cex.lab = 1.4)
 
-mod030430cm = lm(psi.30cm ~ psi.growing, data = psi.030430cmr)
-summary(mod030430cm)
+mod2 = lm(psi.winter ~ psi.all, data = all.psi)
+summary(mod2)
 
 ## add line
-abline(mod030430cm, lty = 2, lwd = 2)
+abline(mod2, lty = 2, lwd = 2)
 ## add R2
-text(x = 6, y = 1, expression("R"^2))
-text(x = 7.2, y = 0.95, "= 0.7094")
-rm(mod030430cm)
+text(x = 20, y = 6, expression("R"^2), adj = 0)
+text(x = 22, y = 5.8, "= 0.7074", adj = 0)
+rm(mod2)
 dev.off()
 
 #### 7. SAVE 'all.psi' OBJECT AS .RDATA ####
-all.psi = psi.030430cmr
+old.file = list.files("data/")[grep("all.psi", list.files("data/"))]
+file.remove(paste0("data/",old.file))
 file.name = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".all.psi.Rdata")
 save(all.psi, file = file.name)
-rm(all.psi, psi.030430cmr, file.name)
+rm(all.psi, file.name, old.file)

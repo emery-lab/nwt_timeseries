@@ -107,3 +107,16 @@ merge.psi = function(df1, df2, col1 = "A", col2 = "B"){
   message("Psi values merged, new psi labeled as 'ADDED.PSI'")
   return(df1)
 }
+
+
+#### scale.df() ####
+## scales an entire df, or atleast the numeric columns
+scale.df = function(df){
+  for (i in 1:ncol(df)){
+    if(is.numeric(df[, i])){
+      df[,i] = as.numeric(scale(df[, i]))
+    }
+    
+  }
+  return(df)
+}
