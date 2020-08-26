@@ -54,29 +54,3 @@ unfold<-function(X){
 	x<-scale(x, center=TRUE, scale=TRUE)  # Comment this line out if you wish to perform the analysis without standardizing the distance matrices! 
 	return(x)
 }
-
-
-# Tutorial for data files gendist.txt, geodist.txt, and ecodist.txt
-
-# Read the matrices from files.
-# The read.matrix function requires {tseries} package to be installed and loaded.
-# If the files have a row as a header (e.g. column names), then specify 'header=TRUE', default is 'header=FALSE'.
-library(tseries)
-genMat <- read.matrix("gendist.txt")
-geoMat <- read.matrix("geodist.txt")
-ecoMat <- read.matrix("ecodist.txt")
-
-# Make a list of the explanatory (X) matrices.
-# Names are optional.  Order doesn't matter.
-# Can include more than two matrices, if desired.
-Xmats <- list(geography=geoMat,ecology=ecoMat)
-
-# Run MMRR function using genMat as the response variable and Xmats as the explanatory variables.
-# nperm does not need to be specified, default is nperm=999)
-MMRR(genMat,Xmats,nperm=999)
-
-# These data should generate results of approximately:
-# Coefficient of geography = 0.778 (p = 0.001)
-# Coefficient of ecology = 0.167 (p = 0.063)
-# Model r.squared = 0.727 (p = 0.001)
-# Note that significance values may change slightly due to the permutation procedure.
