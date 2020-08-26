@@ -10,29 +10,32 @@ library(sf)
 library(ecodist)
 
 # read in time-series psi metric
-psi.df <- read.csv("data/08.12.20.sennetdissimilarity.csv")
-head(psi.df)
+load("data/08.21.2020.all.psi.Rdata")
+head(all.psi)
 
-# remove 'old psi column
-psi.df <- psi.df [, -4]
+# subset to psi for entire year
+psi.annual <- all.psi[,1:3]
+head(psi.annual)
 
 # update column names 
-colnames(psi.df) <- c("s1", "s2", "psi")
+colnames(psi.annual) <- c("s1", "s2", "psi")
 
 #look at sensor node numbers
-unique(psi.df$s1)
-length(unique(psi.df$s1)) # 14
-unique(psi.df$s2)
-length(unique(psi.df$s2)) # 14
-psi.df
+unique(psi.annual$s1)
+length(unique(psi.annual$s1))
+unique(psi.annual$s2)
+length(unique(psi.annual$s2))
+psi.annual
 
 # duplicate all sensor nodes so that all combinations exist
-psi.dup <- psi.df %>% 
+psi.dup <- psi.annual %>% 
   mutate(temp = s2, s2 = s1, s1 = temp) %>% 
   select(-temp) %>%
-  rbind(psi.df) %>% 
-  rbind(data.frame(s1 = c(6:17, 19:21), s2 = c(6:17, 19:21), psi = 0))
-psi.dup
+  rbind(psi.annual) %>% 
+  rbind(data.frame(s1 = c(6:14, 16, 17, 19:21), s2 = c(6:14, 16, 17, 19:21), psi = 0))
+psi.dup$s1 <- as.numeric(psi.dup$s1)
+psi.dup$s2 <- as.numeric(psi.dup$s2)
+str(psi.dup)
 
 # turn psi df into a matrix
 psi.matrix <- 
@@ -45,8 +48,7 @@ dim(psi.matrix)
 
 psi.matrix <- as.matrix(psi.matrix)
 row.names(psi.matrix) <- colnames(psi.matrix)
-
-##### still need to rearrange the veg matrix to now match the psi.matrix
+psi.matrix
 
 # plot plant community data
 veg <- read.csv("raw_data/06.28.20_sennet_plantcommunity_raw.csv") 
@@ -63,7 +65,6 @@ head(veg)
 
 # subset to columns of interest (plot, species, abundance)
 veg <- veg[,c("sensor_node", "abundance", "species")]
-
 
 # make df a community matrix
 veg.matrix <- sample2matrix(veg)
@@ -87,17 +88,18 @@ veg.dissimilarity.matrix; dim(veg.dissimilarity.matrix)
 image(psi.matrix)
 image(veg.dissimilarity.matrix)
 
-
 vegan::mantel(ydis = psi.matrix, xdis = veg.dissimilarity.matrix)
-#40% correlated! sig = 0.004
 
 # bring in physical distance
 physical.distance <- read.csv("data/06.29.2020.sensorlocations.csv")
 physical.distance
 
-# remove plot 1 
+# remove plots 1 & 15
 physical.distance <- physical.distance[-1,]
+physical.distance <- physical.distance[-10,]
 physical.distance
+
+#make a spatial object
 physical.distance <- sf::st_as_sf(physical.distance, coords = c("long", "lat"), crs = 4326)
 physical.distance
 
@@ -105,18 +107,14 @@ distance <- st_distance(physical.distance)
 distance
 dim(distance)
 
-# three matrices, all 15 by 15
 distance; dim(distance)
 psi.matrix; dim(psi.matrix)
 veg.dissimilarity.matrix; dim(veg.dissimilarity.matrix)
 
-ggplot(as.data.frame(psi.matrix))+
-  geom_raster()
-
 # Function from MMRRTutorial.R
 Xmats <- list(ecology=psi.matrix, physical = distance)
 str(Xmats)
-MMRR(veg.dissimilarity.matrix,Xmats, nperm = 10000) # R.sq ~ 16%, only psi signficant
+MMRR(veg.dissimilarity.matrix,Xmats, nperm = 10000)
 
 ##### Turn them into data frames - doesn't currently work ###
 
