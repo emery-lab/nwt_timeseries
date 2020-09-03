@@ -2,14 +2,16 @@
 ## Load package 'distantia' 
 library(distantia)
 ## load clean data
-file.to.load = list.files("data/")[grep("sn.04", list.files("data/"))]
+file.to.load = list.files("data/")[grep("sn.06", list.files("data/"))]
 load(paste0("data/", file.to.load))
-rm(sn.04a, sn.04n)
 rm(file.to.load)
 
+str(sn.06)
 
 ## get the variance of each node
-var.04r = aggregate(sn.04r, by = list(sn.04r$sensornode), FUN = var)
+var.04r = aggregate(sn.06, by = list(sn.06$sensornode), FUN = var, na.rm = T)
+plot(var.04r$soiltemp_5cm_avg ~ var.04r$Group.1, pch = 19)
+points(var.04r$soilmoisture_a_5cm_avg ~ var.04r$Group.1)
 
 nodes = unique(var.04r$Group.1)
 st5 = as.matrix(dist(var.04r$soiltemp_5cm_avg, diag = TRUE, upper = T))
