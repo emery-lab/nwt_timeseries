@@ -22,12 +22,15 @@ rm(dates, sample)
 
 ## merge time.df with the main df. I might save this as the base data frame in the future. 
 sn.04 = merge(sn.04, time.df, by.x = "date", by.y = "dates", all.x = TRUE)
+sn.04s = merge(sn.04s, time.df, by.x = "date", by.y = "dates", all.x = TRUE)
 ## Check to make sure there is actually samples in each one. (and 15 or less)
 #table(sn.01_daily.2$sample)
 rm(time.df)
 
 ## remove date column
 sn.04 = sn.04[, -which(names(sn.04) %in% c("date"))]
+sn.04s = sn.04s[, -which(names(sn.04s) %in% c("date"))]
+
 
 #### 2. PREPARE SEQUENCES ####
 seq.04 = prepareSequences(
@@ -36,6 +39,14 @@ seq.04 = prepareSequences(
             time.column = "sample",
             if.empty.cases = "omit"
 )
+
+seq.04s = prepareSequences(
+  sequences = sn.04s,
+  grouping.column = "sensornode",
+  time.column = "sample",
+  if.empty.cases = "omit"
+)
+
 
 #### 3. CALCULATE PSI ####
 psi.04 = workflowPsiHP(
@@ -46,7 +57,17 @@ psi.04 = workflowPsiHP(
                 
 )
 
-rm(sn.04)
+psi.04s = workflowPsiHP(
+  sequences =  seq.04s,
+  grouping.column = "sensornode",
+  time.column = "sample",
+  parallel.execution = TRUE
+  
+)
+
+psi.04.all = merge(psi.04, psi.04s, by = c("A", "B"))
+colnames(psi.04.all) = c("A", "B", "psi.all", "psi.all.scaled")
+rm(sn.04, sn.04s, psi.04, psi.04s)
 
 #### 4. IMPORTANCE OF EACH VARIABLE IN TS ####
 # importance.03r = workflowImportanceHP(
@@ -58,7 +79,7 @@ rm(sn.04)
 
 
 
-rm(seq.04)
+rm(seq.04, seq.04s)
 
 
 

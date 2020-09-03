@@ -115,64 +115,64 @@ sn.06 = sn.06[, -which(names(sn.06) %in% c("Group.1", "Group.2"))]
 ## set up factors 
 sn.01$sensornode = as.factor(sn.01$sensornode)
 
-sn.01 = scale.df(sn.01)
+sn.01s = scale.df(sn.01)
 file.name1 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.01.Rdata")
 old.file1 = list.files("data/")[grep("sn.01", list.files("data/"))]
 file.remove(paste0("data/", old.file1))
-save(sn.01, file = file.name1)
+save(sn.01, sn.01s, file = file.name1)
 rm(file.name1, old.file1) # clean up the workspace
 
 ## sn.02 - Scale it to mean 0; sd 1
 sn.02$sensornode = as.factor(sn.02$sensornode)
 
-sn.02 = scale.df(sn.02)
+sn.02s = scale.df(sn.02)
 ## Save these as .Rdata
 file.name2 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.02.Rdata")
 old.file2 = list.files("data/")[grep("sn.02", list.files("data/"))]
 file.remove(paste0("data/",old.file2))
-save(sn.02, file = file.name2)
+save(sn.02, sn.02s, file = file.name2)
 rm(file.name2, old.file2)
 
 ## sn.03 -  Scale it to mean 0; sd 1
 sn.03$sensornode = as.factor(sn.03$sensornode)
 
-sn.03 = scale.df(sn.03)
+sn.03s = scale.df(sn.03)
 file.name3 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.03.Rdata")
 old.file3 = list.files("data/")[grep("sn.03", list.files("data/"))]
 file.remove(paste0("data/",old.file3))
-save(sn.03, file = file.name3)
+save(sn.03, sn.03s, file = file.name3)
 rm(file.name3, old.file3)
 
 ## sn.04 - Scale it to mean 0; sd 1
 sn.04$sensornode = as.factor(sn.04$sensornode)
 
-sn.04 = scale.df(sn.04)
+sn.04s = scale.df(sn.04)
 file.name4 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.04.Rdata")
 old.file4 = list.files("data/")[grep("sn.04", list.files("data/"))]
 file.remove(paste0("data/",old.file4))
-save(sn.04, file = file.name4)
+save(sn.04, sn.04s, file = file.name4)
 rm(file.name4, old.file4)
 
 ## sn.05 Scale it to mean 0; sd 1
 sn.05$sensornode = as.factor(sn.05$sensornode)
 sn.05$season = as.factor(sn.05$season)
 
-sn.05 = scale.df(sn.05)
+sn.05s = scale.df(sn.05)
 file.name5 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.05.Rdata")
 old.file5 = list.files("data/")[grep("sn.05", list.files("data/"))]
 file.remove(paste0("data/",old.file5))
-save(sn.05, file = file.name5)
+save(sn.05, sn.05s, file = file.name5)
 rm(file.name5, old.file5)
 
 ## sn.06 - Scale it to mean 0; sd 1
 sn.06$sensornode = as.factor(sn.06$sensornode)
 sn.06$season = as.factor(sn.06$season)
 
-sn.06 = scale.df(sn.06)
+sn.06s = scale.df(sn.06)
 file.name6 = paste0("data/", format(Sys.Date(), "%m.%d.%Y"), ".sn.06.Rdata")
 old.file6 = list.files("data/")[grep("sn.06", list.files("data/"))]
 file.remove(paste0("data/",old.file6))
-save(sn.06, file = file.name6)
+save(sn.06, sn.06s, file = file.name6)
 rm(file.name6, old.file6)
 
 #### 11. ACTUALLY CLEAR ENVIRONMENT ####
