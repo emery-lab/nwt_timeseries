@@ -9,55 +9,157 @@ library(cowplot)
 library(sf)
 library(ecodist)
 
-# read in time-series psi metric
-load("data/08.21.2020.all.psi.Rdata")
+# PSI ####
+# bring in all time-series psi metrics
+load("data/09.03.2020.all.psi.Rdata")
 head(all.psi)
 
-# subset to psi for entire year
+# PSI annual 
 psi.annual <- all.psi[,1:3]
 head(psi.annual)
-
 # update column names 
 colnames(psi.annual) <- c("s1", "s2", "psi")
-
-#look at sensor node numbers
-unique(psi.annual$s1)
-length(unique(psi.annual$s1))
-unique(psi.annual$s2)
-length(unique(psi.annual$s2))
-psi.annual
-
 # duplicate all sensor nodes so that all combinations exist
-psi.dup <- psi.annual %>% 
+psi.dup.annual <- psi.annual %>% 
   mutate(temp = s2, s2 = s1, s1 = temp) %>% 
   select(-temp) %>%
   rbind(psi.annual) %>% 
   rbind(data.frame(s1 = c(6:14, 16, 17, 19:21), s2 = c(6:14, 16, 17, 19:21), psi = 0))
-psi.dup$s1 <- as.numeric(psi.dup$s1)
-psi.dup$s2 <- as.numeric(psi.dup$s2)
-str(psi.dup)
-
+psi.dup.annual$s1 <- as.numeric(psi.dup.annual$s1)
+psi.dup.annual$s2 <- as.numeric(psi.dup.annual$s2)
 # turn psi df into a matrix
-psi.matrix <- 
-  psi.dup %>% 
+psi.matrix.annual <- 
+  psi.dup.annual %>% 
   arrange(s1,s2) %>% 
   pivot_wider(id_cols = s1, names_from = s2, values_from = psi) %>% 
   select(-s1)
-psi.matrix
-dim(psi.matrix)
+psi.matrix.annual <- as.matrix(psi.matrix.annual)
+row.names(psi.matrix.annual) <- colnames(psi.matrix.annual)
+psi.matrix.annual
 
-psi.matrix <- as.matrix(psi.matrix)
-row.names(psi.matrix) <- colnames(psi.matrix)
-psi.matrix
+# PSI annual scaled
+psi.annual.s <- all.psi[,c(1,2,4)]
+head(psi.annual.s)
+# update column names 
+colnames(psi.annual.s) <- c("s1", "s2", "psi")
+# duplicate all sensor nodes so that all combinations exist
+psi.dup.annual.s <- psi.annual.s %>% 
+  mutate(temp = s2, s2 = s1, s1 = temp) %>% 
+  select(-temp) %>%
+  rbind(psi.annual.s) %>% 
+  rbind(data.frame(s1 = c(6:14, 16, 17, 19:21), s2 = c(6:14, 16, 17, 19:21), psi = 0))
+psi.dup.annual.s$s1 <- as.numeric(psi.dup.annual.s$s1)
+psi.dup.annual.s$s2 <- as.numeric(psi.dup.annual.s$s2)
+# turn psi df into a matrix
+psi.matrix.annual.s <- 
+  psi.dup.annual.s %>% 
+  arrange(s1,s2) %>% 
+  pivot_wider(id_cols = s1, names_from = s2, values_from = psi) %>% 
+  select(-s1)
+psi.matrix.annual.s<- as.matrix(psi.matrix.annual.s)
+row.names(psi.matrix.annual.s) <- colnames(psi.matrix.annual.s)
+psi.matrix.annual.s
 
-# plot plant community data
+# PSI grow 
+psi.grow <- all.psi[,c(1,2,5)]
+head(psi.grow)
+# update column names 
+colnames(psi.grow) <- c("s1", "s2", "psi")
+# duplicate all sensor nodes so that all combinations exist
+psi.dup.grow <- psi.grow %>% 
+  mutate(temp = s2, s2 = s1, s1 = temp) %>% 
+  select(-temp) %>%
+  rbind(psi.grow) %>% 
+  rbind(data.frame(s1 = c(6:14, 16, 17, 19:21), s2 = c(6:14, 16, 17, 19:21), psi = 0))
+psi.dup.grow$s1 <- as.numeric(psi.dup.grow$s1)
+psi.dup.grow$s2 <- as.numeric(psi.dup.grow$s2)
+# turn psi df into a matrix
+psi.matrix.grow <- 
+  psi.dup.grow %>% 
+  arrange(s1,s2) %>% 
+  pivot_wider(id_cols = s1, names_from = s2, values_from = psi) %>% 
+  select(-s1)
+psi.matrix.grow <- as.matrix(psi.matrix.grow)
+row.names(psi.matrix.grow) <- colnames(psi.matrix.grow)
+psi.matrix.grow
+
+# PSI grow scaled
+psi.grow.s <- all.psi[,c(1,2,6)]
+head(psi.grow.s)
+# update column names 
+colnames(psi.grow.s) <- c("s1", "s2", "psi")
+# duplicate all sensor nodes so that all combinations exist
+psi.dup.grow.s <- psi.grow.s %>% 
+  mutate(temp = s2, s2 = s1, s1 = temp) %>% 
+  select(-temp) %>%
+  rbind(psi.grow.s) %>% 
+  rbind(data.frame(s1 = c(6:14, 16, 17, 19:21), s2 = c(6:14, 16, 17, 19:21), psi = 0))
+psi.dup.grow.s$s1 <- as.numeric(psi.dup.grow.s$s1)
+psi.dup.grow.s$s2 <- as.numeric(psi.dup.grow.s$s2)
+# turn psi df into a matrix
+psi.matrix.grow.s <- 
+  psi.dup.grow.s %>% 
+  arrange(s1,s2) %>% 
+  pivot_wider(id_cols = s1, names_from = s2, values_from = psi) %>% 
+  select(-s1)
+psi.matrix.grow.s<- as.matrix(psi.matrix.grow.s)
+row.names(psi.matrix.grow.s) <- colnames(psi.matrix.grow.s)
+psi.matrix.grow.s
+
+# PSI winter 
+psi.winter <- all.psi[,c(1,2,7)]
+head(psi.winter)
+# update column names 
+colnames(psi.winter) <- c("s1", "s2", "psi")
+# duplicate all sensor nodes so that all combinations exist
+psi.dup.winter <- psi.winter %>% 
+  mutate(temp = s2, s2 = s1, s1 = temp) %>% 
+  select(-temp) %>%
+  rbind(psi.winter) %>% 
+  rbind(data.frame(s1 = c(6:14, 16, 17, 19:21), s2 = c(6:14, 16, 17, 19:21), psi = 0))
+psi.dup.winter$s1 <- as.numeric(psi.dup.winter$s1)
+psi.dup.winter$s2 <- as.numeric(psi.dup.winter$s2)
+# turn psi df into a matrix
+psi.matrix.winter <- 
+  psi.dup.winter %>% 
+  arrange(s1,s2) %>% 
+  pivot_wider(id_cols = s1, names_from = s2, values_from = psi) %>% 
+  select(-s1)
+psi.matrix.winter <- as.matrix(psi.matrix.winter)
+row.names(psi.matrix.winter) <- colnames(psi.matrix.winter)
+psi.matrix.winter
+
+# PSI winter scaled
+psi.winter.s <- all.psi[,c(1,2,8)]
+head(psi.winter.s)
+# update column names 
+colnames(psi.winter.s) <- c("s1", "s2", "psi")
+# duplicate all sensor nodes so that all combinations exist
+psi.dup.winter.s <- psi.winter.s %>% 
+  mutate(temp = s2, s2 = s1, s1 = temp) %>% 
+  select(-temp) %>%
+  rbind(psi.winter.s) %>% 
+  rbind(data.frame(s1 = c(6:14, 16, 17, 19:21), s2 = c(6:14, 16, 17, 19:21), psi = 0))
+psi.dup.winter.s$s1 <- as.numeric(psi.dup.winter.s$s1)
+psi.dup.winter.s$s2 <- as.numeric(psi.dup.winter.s$s2)
+# turn psi df into a matrix
+psi.matrix.winter.s <- 
+  psi.dup.winter.s %>% 
+  arrange(s1,s2) %>% 
+  pivot_wider(id_cols = s1, names_from = s2, values_from = psi) %>% 
+  select(-s1)
+psi.matrix.winter.s<- as.matrix(psi.matrix.winter.s)
+row.names(psi.matrix.winter.s) <- colnames(psi.matrix.winter.s)
+psi.matrix.winter.s
+
+#### Veg ####
+# Plant community data
 veg <- read.csv("raw_data/06.28.20_sennet_plantcommunity_raw.csv") 
 head(veg)
-unique(veg$sensor_node) %in% colnames(psi.matrix)
-length(unique(veg$sensor_node))# 17 nodes here -- > need to pair down to 14 from which psi is calculated
+unique(veg$sensor_node) %in% colnames(psi.matrix.annual)
 
 # subset veg to plots with psi calculated
-veg <- subset(veg,veg$sensor_node %in% colnames(psi.matrix))
+veg <- subset(veg,veg$sensor_node %in% colnames(psi.matrix.annual))
 
 # subset data to 2019 etc.
 veg <- subset(veg, year == 2019 & abundance!= 0.5 & multi.hit_or_top.hit == "top-hit-of-multihit-protocol")
@@ -82,14 +184,7 @@ veg.dissimilarity.matrix <- as.matrix(veg.dissimilarity)
 dim(veg.dissimilarity.matrix)
 veg.dissimilarity.matrix
 
-# 2 matrices
-psi.matrix; dim(psi.matrix)
-veg.dissimilarity.matrix; dim(veg.dissimilarity.matrix)
-image(psi.matrix)
-image(veg.dissimilarity.matrix)
-
-vegan::mantel(ydis = psi.matrix, xdis = veg.dissimilarity.matrix)
-
+#### PHYSICAL DISTANCE ####
 # bring in physical distance
 physical.distance <- read.csv("data/06.29.2020.sensorlocations.csv")
 physical.distance
@@ -104,19 +199,24 @@ physical.distance <- sf::st_as_sf(physical.distance, coords = c("long", "lat"), 
 physical.distance
 
 distance <- st_distance(physical.distance)
-distance
 dim(distance)
+distance
 
-distance; dim(distance)
-psi.matrix; dim(psi.matrix)
-veg.dissimilarity.matrix; dim(veg.dissimilarity.matrix)
+#### MODELS ####
+
+# mantel test
+vegan::mantel(ydis = psi.matrix.annual, xdis = veg.dissimilarity.matrix)
+vegan::mantel(ydis = psi.matrix.annual.s, xdis = veg.dissimilarity.matrix)
+vegan::mantel(ydis = psi.matrix.grow, xdis = veg.dissimilarity.matrix)
+vegan::mantel(ydis = psi.matrix.grow.s, xdis = veg.dissimilarity.matrix)
+vegan::mantel(ydis = psi.matrix.winter, xdis = veg.dissimilarity.matrix)
+vegan::mantel(ydis = psi.matrix.winter.s, xdis = veg.dissimilarity.matrix)
 
 # Function from MMRRTutorial.R
-Xmats <- list(ecology=psi.matrix, physical = distance)
-str(Xmats)
+Xmats <- list(ecology=psi.matrix.winter, physical = distance)
 MMRR(veg.dissimilarity.matrix,Xmats, nperm = 10000)
 
-##### Turn them into data frames - doesn't currently work ###
+##### Turn them into data frames - doesn't currently work ####
 
 veg.dissimilarity.df <- spread(veg.dissimilarity, "s2", "dis")
 veg.dissimilarity.df$s1 <- colnames(veg.dissimilarity) 
