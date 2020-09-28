@@ -120,3 +120,53 @@ scale.df = function(df){
   }
   return(df)
 }
+
+#### do.psi() ####
+## this function condenses the workflow of calculating psi, and modifying the
+## data frames to work with the distantia functions. I got sick of copying and
+## pasting all that code. 
+
+do.psi = function(data, add.time = TRUE){
+  
+  # first add time column if needed
+  # this does integer timing (counts) since distantia can't handle real dates
+  # need real dates though. 
+  if(add.time == TRUE){
+    dates = seq(min(data$date), max(data$date), by = 1) # range of dates
+    sample = 1:length(dates)
+    dates = as.data.frame(dates)
+    time.df = cbind(dates, sample) 
+    
+    # merge times with the dataframe using 'date' column
+    data = merge(data, time.df, by.x = "date", by.y = "dates", all.x = TRUE)
+    
+  }
+  
+  # now get rid  of the date column
+  data = data[, -which(names(data) %in% c("date"))]
+  
+  # prepate sequences - from distantia
+  sequence = prepareSequences(
+    sequences = data,
+    grouping.column = "sensornode",
+    time.column = "sample",
+    if.empty.cases = "omit"
+  )
+  
+  # calculate psi 
+  psi = workflowPsiHP(
+    sequences =  sequence,
+    grouping.column = "sensornode",
+    time.column = "sample",
+    parallel.execution = TRUE
+    
+  )
+  
+  # plot the distribution of psi, although this is density.
+  plot(density(psi$psi))
+  return(psi)
+  
+  
+}
+
+
