@@ -9,7 +9,7 @@ library(cowplot)
 library(sf)
 library(ecodist)
 
-# PSI ####
+#### PSI (combined climate) #### ####
 # bring in all time-series psi metrics
 load("data/09.03.2020.all.psi.Rdata")
 head(all.psi)
@@ -152,7 +152,58 @@ psi.matrix.winter.s<- as.matrix(psi.matrix.winter.s)
 row.names(psi.matrix.winter.s) <- colnames(psi.matrix.winter.s)
 psi.matrix.winter.s
 
-#### Veg ####
+#### PSI (separated climate) ####
+load("data/09.28.2020.psi.breakdown.Rdata")
+head(psi.breakdown)
+
+# PSI temp annual 
+psi.temp.annual <- psi.breakdown[, c(1,2,8)]
+head(psi.temp.annual)
+# update column names 
+colnames(psi.temp.annual) <- c("s1", "s2", "psi")
+# duplicate all sensor nodes so that all combinations exist
+psi.temp.annual <- psi.temp.annual %>% 
+  mutate(temp = s2, s2 = s1, s1 = temp) %>% 
+  select(-temp) %>%
+  rbind(psi.temp.annual) %>% 
+  rbind(data.frame(s1 = c(6:14, 16, 17, 19:21), s2 = c(6:14, 16, 17, 19:21), psi = 0))
+psi.temp.annual$s1 <- as.numeric(psi.temp.annual$s1)
+psi.temp.annual$s2 <- as.numeric(psi.temp.annual$s2)
+# turn into a matrix
+psi.temp.annual.matrix <- 
+  psi.temp.annual %>% 
+  arrange(s1,s2) %>% 
+  pivot_wider(id_cols = s1, names_from = s2, values_from = psi) %>% 
+  select(-s1)
+psi.temp.annual.matrix  <- as.matrix(psi.temp.annual.matrix )
+row.names(psi.temp.annual.matrix ) <- colnames(psi.temp.annual.matrix )
+psi.temp.annual.matrix 
+image(psi.temp.annual.matrix)
+
+# PSI moist annual
+psi.moist.annual <- psi.breakdown[,c(1,2,4)]
+head(psi.moist.annual)
+# update column names 
+colnames(psi.moist.annual) <- c("s1", "s2", "psi")
+# duplicate all sensor nodes so that all combinations exist
+psi.moist.annual <- psi.moist.annual %>% 
+  mutate(temp = s2, s2 = s1, s1 = temp) %>% 
+  select(-temp) %>%
+  rbind(psi.moist.annual) %>% 
+  rbind(data.frame(s1 = c(6:14, 16, 17, 19:21), s2 = c(6:14, 16, 17, 19:21), psi = 0))
+psi.moist.annual$s1 <- as.numeric(psi.moist.annual$s1)
+psi.moist.annual$s2 <- as.numeric(psi.moist.annual$s2)
+# turn into a matrix
+psi.moist.annual.matrix <- 
+  psi.moist.annual %>% 
+  arrange(s1,s2) %>% 
+  pivot_wider(id_cols = s1, names_from = s2, values_from = psi) %>% 
+  select(-s1)
+psi.moist.annual.matrix  <- as.matrix(psi.moist.annual.matrix )
+row.names(psi.moist.annual.matrix ) <- colnames(psi.moist.annual.matrix )
+psi.moist.annual.matrix
+
+#### VEG ####
 # Plant community data
 veg <- read.csv("raw_data/06.28.20_sennet_plantcommunity_raw.csv") 
 head(veg)
@@ -202,7 +253,8 @@ distance <- st_distance(physical.distance)
 dim(distance)
 distance
 
-#### MODELS ####
+#### Community-level MODELS ####
+
 
 # mantel test
 vegan::mantel(ydis = psi.matrix.annual, xdis = veg.dissimilarity.matrix)
@@ -213,39 +265,15 @@ vegan::mantel(ydis = psi.matrix.winter, xdis = veg.dissimilarity.matrix)
 vegan::mantel(ydis = psi.matrix.winter.s, xdis = veg.dissimilarity.matrix)
 
 # Function from MMRRTutorial.R
-Xmats <- list(ecology=psi.matrix.winter, physical = distance)
+Xmats <- list(temperature = psi.temp.annual.matrix, moisture = psi.moist.annual.matrix, physical = distance)
 MMRR(veg.dissimilarity.matrix,Xmats, nperm = 10000)
 
-##### Turn them into data frames - doesn't currently work ####
+#### Psi by species relationships ####
+veg.matrix
 
-veg.dissimilarity.df <- spread(veg.dissimilarity, "s2", "dis")
-veg.dissimilarity.df$s1 <- colnames(veg.dissimilarity) 
-veg.dissimilarity.df <- veg.dissimilarity.df[, c("s1", "s2", "dis")]
-veg.dissimilarity.df
+veg.sp <- matrix2sample(veg.matrix)
+head(veg.sp)
 
-psi
-combined <- merge(veg.dissimilarity.df, psi, by = c("s1", "s2"))
-combined
-
-summary(lm(dis ~ psi, data = combined))
-plot(combined$psi, combined$dis)
-
-combined <- gather(combined, key = "type", value = "distance", - s1, -s2)
-combined
-
-veg.plot <- ggplot(combined[combined$type == "dis",], aes(s1,s2, fill = distance))+
-  geom_raster()+
-  theme_classic()
-
-psi.plot <- ggplot(combined[combined$type == "psi",], aes(s1,s2, fill = distance))+
-  geom_raster()+
-  theme_classic()
-
-plot_grid(veg.plot, psi.plot)
-
-head(combined)
-
-#write.csv(combined, "bray_psi_metrics.csv", row.names = F)
 
 #### Make ordination of community data ####
 head(veg.matrix)
