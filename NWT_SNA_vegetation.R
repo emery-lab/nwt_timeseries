@@ -276,17 +276,69 @@ head(veg.sp)
 
 
 #### Make ordination of community data ####
-head(veg.matrix)
+veg.ord <- read.csv("raw_data/06.28.20_sennet_plantcommunity_raw.csv") 
+head(veg.ord)
 
+# subset veg to plots with psi calculated
+veg.ord <- subset(veg.ord,veg.ord$sensor_node %in% colnames(psi.matrix.annual))
+unique(veg.ord$sensor_node) %in% colnames(psi.matrix.annual)
+
+# subset data to 2019 etc.
+veg.ord <- subset(veg.ord, multi.hit_or_top.hit == "top-hit-of-multihit-protocol"| multi.hit_or_top.hit == "top-hit")
+head(veg.ord)
+veg.ord <- subset(veg.ord, abundance!= 0.5)
+
+# subset to columns of interest (plot, species, abundance)
+veg <- veg[,c("sensor_node", "abundance", "species")]
+
+# make df a community matrix
+veg.matrix <- sample2matrix(veg)
+dim(veg.matrix)
+veg.matrix
+
+# remove 'non-veg' rows
+colnames(veg.matrix) #Rock, Unknown_seedling, Unknown_graminoid, Soil, Litter, Lichen, Moss
+non_veg <- c("Rock", "Unknown_seedling", "Unknown_graminoid", "Soil", "Soil ","Litter", "Lichen", "Moss")
+veg.matrix <- veg.matrix[, !colnames(veg.matrix) %in% non_veg]
+
+# calculate Bray-Curtis dissimilarity 
+veg.dissimilarity <- vegdist(x = veg.matrix, method = "bray", upper = T, diag = T)
+veg.dissimilarity.matrix <- as.matrix(veg.dissimilarity)
+dim(veg.dissimilarity.matrix)
+veg.dissimilarity.matrix
+dim(veg.dissimilarity.matrix)
+
+
+# bring in site means (10.01.20.sensor.net.means.Rdata)
+sensor.net.means
+sna.means <- sensor.net.means
+sna.means$sensor <- as.numeric(sna.means$sensor)
+sna.means <-sna.means[order(sna.means$sensor),]
+sna.means
+
+sna.means$sm.5 <- (sna.means$sm_a_5cm_avg + sna.means$sm_b_5cm_avg + sna.means$sm_c_5cm_avg)/3
+sna.means$sm.30 <- (sna.means$sm_a_30cm_avg + sna.means$sm_b_30cm_avg + sna.means$sm_c_30cm_avg)/3
+
+# MANOVA
+adonis(veg.dissimilarity.matrix ~ st_5cm_avg + st_30cm_avg + sm.5 + sm.30, data = sna.means[sna.means$type == "all",],permutations = 100000)
+adonis(veg.dissimilarity.matrix ~ st_5cm_avg + st_30cm_avg + sm.5 + sm.30, data = sna.means[sna.means$type == "winter",],permutations = 100000)
+adonis(veg.dissimilarity.matrix ~ st_5cm_avg + st_30cm_avg + sm.5 + sm.30, data = sna.means[sna.means$type == "growing",], permutations = 100000)
+
+# Wintertime soil moisture at 30cm and growing season temperature at 5cm each significantly explain approx. 13% of the community variation. 
+
+#ordination
 NMDS<-metaMDS(veg.matrix, distance = "bray",trymax=100)
 stressplot(NMDS)
-summary(NMDS)
 
 ordiplot(NMDS,type = "n")
-#priSpp <- diversity(veg.matrix, index = "invsimpson", MARGIN = 2)
-#orditorp(NMDS,display = "species",priority=priSpp, cex = .8) 
+#xlim = c(-2.5,2), ylim = c(-2.5,2))
+priSpp <- diversity(veg.matrix, index = "invsimpson", MARGIN =2)
+orditorp(NMDS,display = "species", priority=priSpp, cex = 1.5, air = 1.5) #orditorp(NMDS,display = "sites", col = "grey", cex = 1.5) 
+ordisurf(NMDS ~ st_5cm_avg, data = sna.means[sna.means$type == "growing",], add=T, lwd = 2)
+title(main = "Growing Season Average Temperature - 5cm")
 
 ordiplot(NMDS,type = "n")
-orditorp(NMDS,display = "species") 
-orditorp(NMDS,display = "sites", col = "red") 
-
+priSpp <- diversity(veg.matrix, index = "invsimpson", MARGIN =2)
+orditorp(NMDS,display = "species", priority=priSpp, cex = 1.5, air = 1.5)
+ordisurf(NMDS ~ sm.30, data = sna.means[sna.means$type == "winter",], add=T, col = "dodgerblue", lwd = 2)
+title(main = "Wintertime Average Soil Moisture - 30cm")
